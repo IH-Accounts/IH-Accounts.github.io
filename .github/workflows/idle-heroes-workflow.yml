@@ -1,0 +1,194 @@
+name: Idle Heroes Profiles and Deployment
+
+# Comprehensive workflow for building profiles, processing images, and deploying site
+# This workflow ensures secure profile generation using GitHub secrets
+# and enhances the visual appearance with optimized game images
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Allows manual triggering
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sundays at midnight UTC
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Security scan
+        run: |
+          echo "Running security checks..."
+          # Check for presence of sensitive files
+          if grep -r "API_KEY" --include="*.js" --include="*.py" --include="*.html" .; then
+            echo "::warning::Found potential API key in source code. Consider moving to GitHub Secrets."
+          fi
+          # Check for other potential issues
+          if grep -r "password" --include="*.js" --include="*.py" --include="*.html" .; then
+            echo "::warning::Found potential password in source code. Consider moving to GitHub Secrets."
+          fi
+          echo "Security scan completed."
+
+  build-profiles:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install additional dependencies for image processing
+        run: |
+          pip install pillow
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f tools/requirements.txt ]; then pip install -r tools/requirements.txt; fi
+          
+      # Add security verification step
+      - name: Verify environment
+        run: |
+          echo "Verifying build environment security..."
+          if [ -z "${{ secrets.PROFILE_SECURITY_KEY }}" ]; then
+            echo "::error::PROFILE_SECURITY_KEY secret not configured. Profiles cannot be securely generated."
+            exit 1
+          fi
+          echo "Environment verification successful."
+
+      - name: Build iOS profile
+        env:
+          SECURITY_KEY: ${{ secrets.PROFILE_SECURITY_KEY }}
+          PROFILE_VERSION: ${{ github.run_number }}
+        run: python tools/ios_profile_generator.py --output ios_profile.mobileconfig --security-key "$SECURITY_KEY" --version "$PROFILE_VERSION"
+        
+      - name: Build Android profile
+        env:
+          SECURITY_KEY: ${{ secrets.PROFILE_SECURITY_KEY }}
+          PROFILE_VERSION: ${{ github.run_number }}
+        run: python tools/android_proxy_setup.py --output android_profile.conf --security-key "$SECURITY_KEY" --version "$PROFILE_VERSION"
+        
+      - name: Upload profiles as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: game-profiles
+          path: |
+            ios_profile.mobileconfig
+            android_profile.conf
+          if-no-files-found: error
+          retention-days: 7
+
+  process-images:
+    needs: build-profiles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install image processing dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pillow requests
+          
+      - name: Process game images
+        env:
+          SECURITY_KEY: ${{ secrets.PROFILE_SECURITY_KEY }}
+        run: |
+          echo "Processing Idle Heroes images..."
+          python tools/image_utility.py --output images --security-key "$SECURITY_KEY"
+          echo "Image processing complete. Created optimized game assets."
+          
+      - name: Upload image artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: game-images
+          path: images/
+          if-no-files-found: warn
+          
+  create-release:
+    needs: [build-profiles, process-images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download profiles artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: game-profiles
+          
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Idle Heroes Profiles v${{ github.run_number }}
+          tag_name: v${{ github.run_number }}
+          files: |
+            ios_profile.mobileconfig
+            android_profile.conf
+          body: |
+            # Idle Heroes Game Profiles
+            
+            These profiles allow you to securely capture your game data for viewing in the Account Viewer.
+            
+            ## Installation
+            
+            ### iOS Profile
+            1. Download the iOS profile to your device
+            2. Open in Settings app
+            3. Install and trust the profile
+            4. Open Idle Heroes to begin capturing data
+            
+            ### Android Profile
+            1. Download the Android profile to your device
+            2. Import into a proxy app like HTTP Toolkit
+            3. Configure your device's network settings
+            4. Open Idle Heroes to begin capturing data
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          
+  deploy-to-pages:
+    needs: create-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Update download links
+        run: |
+          echo "Updating profile download links..."
+          version="v${{ github.run_number }}"
+          repo="${{ github.repository }}"
+          sed -i "s|href=\"https://github.com/.*/releases/latest/download/ios_profile.mobileconfig\"|href=\"https://github.com/${repo}/releases/download/${version}/ios_profile.mobileconfig\"|g" landing.html
+          sed -i "s|href=\"https://github.com/.*/releases/latest/download/android_profile.conf\"|href=\"https://github.com/${repo}/releases/download/${version}/android_profile.conf\"|g" landing.html
+          echo "Download links updated to version ${version}"
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: '.'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

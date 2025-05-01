@@ -1,0 +1,58 @@
+name: Account Data Update
+
+# This workflow automatically updates account data files when new data is captured
+# It enables permanent account URLs that always show the latest data
+
+on:
+  repository_dispatch:
+    types: [account-data-update]
+  workflow_dispatch:  # Allow manual triggering for testing
+
+jobs:
+  update-account-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Verify account data
+        run: |
+          echo "Verifying account data structure..."
+          # Ensure data is properly formatted (platform=uid format)
+          if [[ "${{ github.event.client_payload.accountId }}" =~ ^(iOS|Android)=[0-9a-zA-Z]+$ ]]; then
+            echo "Account ID format verified."
+          else
+            echo "::error::Invalid account ID format. Must be platform=uid."
+            exit 1
+          fi
+          
+          # Verify data is present
+          if [ -z "${{ github.event.client_payload.compressedData }}" ]; then
+            echo "::error::No compressed data provided."
+            exit 1
+          fi
+        
+      - name: Create data directory
+        run: |
+          mkdir -p data/accounts
+      
+      - name: Update account data file
+        run: |
+          ACCOUNT_ID="${{ github.event.client_payload.accountId }}"
+          COMPRESSED_DATA="${{ github.event.client_payload.compressedData }}"
+          SAFE_ACCOUNT_ID=$(echo "$ACCOUNT_ID" | sed 's/\//_/g')
+          
+          echo "Updating data for account: $SAFE_ACCOUNT_ID"
+          echo "{\"accountId\":\"$ACCOUNT_ID\",\"compressedData\":\"$COMPRESSED_DATA\",\"lastUpdated\":\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"}" > data/accounts/${SAFE_ACCOUNT_ID}.json
+          
+          # Log update (limited info for privacy)
+          echo "Account data updated: ${SAFE_ACCOUNT_ID} at $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> data/update_log.txt
+      
+      - name: Commit and push changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'data/accounts data/update_log.txt'
+          message: 'Update account data for ${{ github.event.client_payload.accountId }}'
+          default_author: github_actions

@@ -1,0 +1,99 @@
+name: Build Game Profiles
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-ios-profile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tools/requirements.txt
+          
+      - name: Build iOS Profile
+        run: python tools/ios_profile_generator.py --output ios_profile.mobileconfig
+        
+      - name: Upload iOS Profile Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-profile
+          path: ios_profile.mobileconfig
+          
+  build-android-profile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tools/requirements.txt
+          
+      - name: Build Android Profile
+        run: python tools/android_proxy_setup.py --output android_profile.conf
+        
+      - name: Upload Android Profile Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-profile
+          path: android_profile.conf
+          
+  create-release:
+    needs: [build-ios-profile, build-android-profile]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download iOS Profile
+        uses: actions/download-artifact@v3
+        with:
+          name: ios-profile
+          
+      - name: Download Android Profile
+        uses: actions/download-artifact@v3
+        with:
+          name: android-profile
+          
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Idle Heroes Profiles
+          tag_name: profiles-${{ github.run_number }}
+          files: |
+            ios_profile.mobileconfig
+            android_profile.conf
+          body: |
+            # Idle Heroes Game Profiles
+            
+            These profiles allow you to securely capture your game data for viewing in the Account Viewer.
+            
+            ## Installation
+            
+            ### iOS Profile
+            1. Download the iOS profile
+            2. Open in Settings app
+            3. Install and trust the profile
+            4. Open Idle Heroes
+            
+            ### Android Profile
+            1. Download the Android profile
+            2. Import into your proxy app
+            3. Configure network settings
+            4. Open Idle Heroes
+          draft: false
+          prerelease: false

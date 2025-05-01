@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadDescription</key>
+            <string>Configures device to intercept Idle Heroes game traffic</string>
+            <key>PayloadDisplayName</key>
+            <string>Idle Heroes Game Data Capture</string>
+            <key>PayloadIdentifier</key>
+            <string>com.ih-accounts.proxy.profile</string>
+            <key>PayloadType</key>
+            <string>com.apple.webClip.managed</string>
+            <key>PayloadUUID</key>
+            <string>F208B40B-66C3-4A30-A20C-B4A5DAE7C76F</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>FullScreen</key>
+            <true/>
+            <key>Icon</key>
+            <data>
+            <!-- Base64 encoded icon image would go here -->
+            </data>
+            <key>IsRemovable</key>
+            <true/>
+            <key>Label</key>
+            <string>Idle Heroes Capture</string>
+            <key>URL</key>
+            <string>https://ih-accounts.github.io/profile-config</string>
+        </dict>
+        <dict>
+            <key>PayloadDescription</key>
+            <string>Configures device to use proxy for Idle Heroes traffic capture</string>
+            <key>PayloadDisplayName</key>
+            <string>Idle Heroes Proxy Configuration</string>
+            <key>PayloadIdentifier</key>
+            <string>com.ih-accounts.proxy.http-proxy</string>
+            <key>PayloadType</key>
+            <string>com.apple.proxy.http.global</string>
+            <key>PayloadUUID</key>
+            <string>253D61B5-883D-4F35-B956-C8516AE82D87</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>ProxyCaptiveLoginAllowed</key>
+            <true/>
+            <key>ProxyPACFallbackAllowed</key>
+            <false/>
+            <key>ProxyPACURL</key>
+            <string>https://ih-accounts.github.io/proxy.pac</string>
+            <key>ProxyType</key>
+            <string>Auto</string>
+        </dict>
+        <dict>
+            <key>PayloadCertificateFileName</key>
+            <string>idle-heroes-cert.cer</string>
+            <key>PayloadContent</key>
+            <data>
+            <!-- Base64 encoded certificate data would go here -->
+            </data>
+            <key>PayloadDescription</key>
+            <string>Adds a CA root certificate</string>
+            <key>PayloadDisplayName</key>
+            <string>Idle Heroes Traffic Certificate</string>
+            <key>PayloadIdentifier</key>
+            <string>com.ih-accounts.proxy.cert</string>
+            <key>PayloadType</key>
+            <string>com.apple.security.root</string>
+            <key>PayloadUUID</key>
+            <string>CE5D0F7D-1CE4-4A43-85B8-5A36C3D1BCA9</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+        </dict>
+    </array>
+    <key>PayloadDescription</key>
+    <string>This profile enables secure capture of Idle Heroes game data for viewing in the Idle Heroes Account Viewer. The profile is valid for 7 days after installation and requires manual trust of the certificate in iOS Settings.</string>
+    <key>PayloadDisplayName</key>
+    <string>Idle Heroes Account Capture</string>
+    <key>PayloadIdentifier</key>
+    <string>com.ih-accounts.proxy</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>A9D9AD9A-648B-44E3-A3F9-48204DBD17E2</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>DurationUntilRemoval</key>
+    <integer>604800</integer><!-- 7 days in seconds -->
+</dict>
+</plist>
