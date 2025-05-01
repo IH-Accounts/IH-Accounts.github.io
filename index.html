@@ -38,19 +38,29 @@
         <p>Loading, please wait...</p>
     </div>
 
-    <script src="js/account-redirector.js"></script>
     <script>
-        // Enhanced router for GitHub Pages with standard hash format (#Platform=UID)
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check if we have a hash (account identifier)
+        // Enhanced routing script to handle proper URL format
+        (function() {
+            // Check if there is a hash in the URL (Platform=UID format)
             if (window.location.hash && window.location.hash.length > 1) {
-                // If URL hash is present, redirect to viewer with the hash
-                window.location.href = 'viewer.html' + window.location.hash;
-            } else {
-                // Otherwise redirect to landing page
-                window.location.href = 'landing.html';
+                const hash = window.location.hash.substring(1);
+                
+                // Check if hash has the correct format (Platform=UID)
+                if (hash.includes('=')) {
+                    const [platform, uid] = hash.split('=');
+                    
+                    if ((platform === 'iOS' || platform === 'Android') && uid && uid.length >= 3) {
+                        console.log(`Valid account format detected: ${platform}=${uid}`);
+                        // If valid format, redirect to viewer with the hash
+                        window.location.href = 'viewer.html' + window.location.hash;
+                        return;
+                    }
+                }
             }
-        });
+            
+            // For any other case, go to landing page
+            window.location.href = 'landing.html';
+        })();
     </script>
 </body>
 </html>

@@ -416,11 +416,22 @@
         </nav>
     
         <!-- Loading Screen -->
-        <div id="loading" class="loading-overlay">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <div id="loading" class="loading-container d-none">
+            <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <div class="loading-text">Loading account data...</div>
+            <p class="loading-text mt-2">Loading account data...</p>
+            <div id="download-progress" class="mt-4 w-75 mx-auto">
+                <div class="progress bg-dark">
+                    <div id="download-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: 0%"></div>
+                </div>
+                <p id="download-status" class="small text-light mt-2 text-center">Initializing...</p>
+            </div>
+            <div class="download-details mt-3 small text-muted">
+                <div class="text-center">
+                    <span id="platform-indicator"></span> • <span id="uid-indicator"></span>
+                </div>
+            </div>
         </div>
     
         <!-- Error Display -->
@@ -460,7 +471,8 @@
                                             </div>
                                             <div class="col-md-5">
                                                 <label for="account-uid" class="form-label">User ID (UID)</label>
-                                                <input type="text" id="account-uid" class="form-control" placeholder="Enter Player UID..." required style="background-color: rgba(6, 10, 26, 0.9) !important; color: var(--idle-light) !important;">
+                                                <input type="text" id="account-uid" class="form-control" placeholder="Enter Player UID..." required style="background-color: rgba(6, 10, 26, 0.9) !important; color: var(--idle-light) !important;" autocomplete="off" spellcheck="false">
+                                                <small class="text-muted">Enter account ID from your profile page</small>
                                             </div>
                                             <div class="col-md-3 d-flex align-items-end">
                                                 <button type="submit" class="btn btn-idle w-100">Search Account</button>
@@ -723,10 +735,12 @@
     <script src="js/url-utility.js"></script>
     <script src="js/mock-data.js"></script>
     <script src="js/idle-heroes-viewer.js"></script>
+    <script src="js/demo-account.js"></script>
+    <script src="js/account-download-simulator.js"></script>
     <script src="js/app.js"></script>
     
     <script>
-    // Additional script to ensure dark styling for form elements
+    // Advanced script to ensure perfect viewer functionality
     document.addEventListener('DOMContentLoaded', function() {
         // Fix for dropdowns and form controls to ensure dark background
         const fixStyles = function() {
@@ -751,26 +765,83 @@
         setTimeout(fixStyles, 100);
         setTimeout(fixStyles, 500);
         
-        // Force load demo data for testing if account search doesn't work
-        const forceDemoDisplay = function() {
-            if (window.viewer && typeof window.viewer.loadDemoData === 'function') {
-                console.log('Loading demo data automatically for testing');
-                window.viewer.loadDemoData();
-                
-                // Show the content
-                document.getElementById('loading').classList.add('d-none');
-                document.getElementById('content').classList.remove('d-none');
-                
-                // Show the demo banner
-                const demoBanner = document.getElementById('demo-data-banner');
-                if (demoBanner) {
-                    demoBanner.classList.remove('d-none');
+        // Check if we need to read URL parameters
+        const checkUrlForAccount = function() {
+            // Get the hash without the # character
+            const hash = window.location.hash.substring(1);
+            
+            if (hash && hash.includes('=')) {
+                try {
+                    // Split into platform and UID
+                    const [platform, uid] = hash.split('=');
+                    
+                    if ((platform === 'iOS' || platform === 'Android') && uid && uid.length >= 4) {
+                        console.log(`Found account in URL: ${platform}=${uid}`);
+                        
+                        // Update form fields
+                        const platformSelect = document.getElementById('account-platform');
+                        const uidInput = document.getElementById('account-uid');
+                        
+                        if (platformSelect && uidInput) {
+                            platformSelect.value = platform;
+                            uidInput.value = uid;
+                        }
+                        
+                        // If viewer object is ready, load this account
+                        if (window.viewer && typeof window.viewer.loadAccount === 'function') {
+                            window.viewer.loadAccount(hash);
+                        } else {
+                            // If viewer not ready, set a flag to load when it's ready
+                            window.accountToLoad = hash;
+                        }
+                        
+                        return true; // Account found in URL
+                    }
+                } catch (e) {
+                    console.error('Error parsing account from URL:', e);
                 }
             }
+            
+            return false; // No account found in URL
         };
         
-        // Load demo data after 2 seconds if no account data is loaded
-        setTimeout(forceDemoDisplay, 2000);
+        // Try to load account from URL first
+        const accountInUrl = checkUrlForAccount();
+        
+        // If no account in URL, load demo data after a delay
+        if (!accountInUrl) {
+            setTimeout(function() {
+                if (window.viewer && typeof window.viewer.loadDemoData === 'function' && 
+                    !document.getElementById('content').classList.contains('d-none')) {
+                    console.log('No account found, loading demo data');
+                    window.viewer.loadDemoData();
+                    
+                    // Show the content
+                    document.getElementById('loading').classList.add('d-none');
+                    document.getElementById('content').classList.remove('d-none');
+                    
+                    // Show the demo banner
+                    const demoBanner = document.getElementById('demo-data-banner');
+                    if (demoBanner) {
+                        demoBanner.classList.remove('d-none');
+                    }
+                }
+            }, 1000);
+        }
+        
+        // Add special keyboard shortcut to toggle debug mode
+        let debugKeyCount = 0;
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'd' && e.ctrlKey && e.shiftKey) {
+                debugKeyCount++;
+                if (debugKeyCount >= 3) {
+                    // Enable debug mode after pressing Ctrl+Shift+D three times
+                    console.log('Debug mode enabled');
+                    localStorage.setItem('debugMode', 'true');
+                    alert('Debug mode enabled. Refresh page to see debug options.');
+                }
+            }
+        });
     });
     </script>
 </body>

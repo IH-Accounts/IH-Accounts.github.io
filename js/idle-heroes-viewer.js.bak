@@ -469,6 +469,23 @@ class IdleHeroesViewer {
         
         // Render each section
         this.renderSummary();
+        this.renderHeroes();
+        this.renderInventory();
+    }
+    
+    /**
+     * Render account summary section
+     */
+    renderSummary() {
+        const summaryElement = document.getElementById('summary');
+        if (!summaryElement) return;
+        
+        // Get user data
+        const user = this.data.user || {};
+        const heroCount = (this.data.heroes || []).length;
+        const inventoryCount = (this.data.inventory || []).length;
+        
+        // Get metadata
         const metadata = this.data.metadata || {};
         const timestamp = metadata.timestamp || new Date().toISOString();
         const version = metadata.version || '1.0.0';
@@ -1233,7 +1250,7 @@ loadAccount(accountId) {
  */
 async fetchAccountData(accountId) {
     try {
-        const [platform, uid] = accountId.split('=')
+        const [platform, uid] = accountId.split('=');
             
         if (!platform || !uid) {
             console.error('Invalid account identifier format');
@@ -1318,7 +1335,7 @@ async fetchAccountData(accountId) {
  */
 async fetchMockData(accountId) {
     try {
-        const [platform, uid] = accountId.split('=')
+        const [platform, uid] = accountId.split('=');
             
         if (!platform || !uid) {
             console.error('Invalid account identifier format');
@@ -1375,7 +1392,7 @@ processAccountData(data, isMock = false) {
         console.error('Error processing account data:', error);
         this.showError(`Error processing account data: ${error.message}`);
     }
-};
+}
 
 /**
  * Cache data locally
@@ -1405,7 +1422,7 @@ cacheDataLocally(accountId, data) {
     } catch (error) {
         console.warn('Error caching data locally:', error);
     }
-};
+}
 
 /**
  * Helper method to check localStorage cache
@@ -1438,7 +1455,4 @@ checkLocalStorageCache(accountId) {
         console.warn('Error getting cached account data:', error);
         return null;
     }
-};
-
-// Afslut IdleHeroesViewer klassen
 }
