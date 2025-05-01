@@ -810,15 +810,16 @@
         
         // If no account in URL, load demo data after a delay
         if (!accountInUrl) {
+            // Show the content div by default so users can see the platform/UID form
+            document.getElementById('loading').classList.add('d-none');
+            document.getElementById('content').classList.remove('d-none');
+            
             setTimeout(function() {
-                if (window.viewer && typeof window.viewer.loadDemoData === 'function' && 
-                    !document.getElementById('content').classList.contains('d-none')) {
+                if (window.viewer && typeof window.viewer.loadDemoData === 'function') {
                     console.log('No account found, loading demo data');
                     window.viewer.loadDemoData();
                     
-                    // Show the content
-                    document.getElementById('loading').classList.add('d-none');
-                    document.getElementById('content').classList.remove('d-none');
+                    // Content div is already shown above
                     
                     // Show the demo banner
                     const demoBanner = document.getElementById('demo-data-banner');
