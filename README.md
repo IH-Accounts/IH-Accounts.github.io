@@ -12,11 +12,12 @@ A fully secure, privacy-focused recreation of the Idle Heroes game interface tha
   </div>
   <div>
     <img src="https://img.shields.io/badge/LAUNCH%20LIVE%20SITE-%E2%86%92-e1c06f?style=for-the-badge&labelColor=873ec7&color=060a1a&logoWidth=50&logoColor=e1c06f" alt="LAUNCH LIVE SITE" width="280">
-
-  Total tracked accounts: [![](https://img.shields.io/badge/Accounts-0-blue)](https://github.com/IH-Accounts/IH-Accounts.github.io/blob/main/stats/account-stats.json).
   </div>
 </a>
 </div>
+
+## Stats
+Total tracked accounts: [![](https://img.shields.io/badge/Accounts-0-blue)](https://github.com/IH-Accounts/IH-Accounts.github.io/blob/main/stats/account-stats.json)
 
 ## Key Features
 
