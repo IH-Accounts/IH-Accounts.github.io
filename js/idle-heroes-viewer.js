@@ -36,6 +36,7 @@ class IdleHeroesViewer {
             
             // Get hash from URL (excluding the # character)
             const hash = window.location.hash.substring(1);
+            console.log('Initializing with hash:', hash);
             
             // Make content visible first
             this.showContent();
@@ -971,221 +972,241 @@ class IdleHeroesViewer {
             return 'Premium Currency';
         } else {
             return type || 'Item';
-        }
-    }
-    
-    /**
-     * Load demo data for testing
-     */
-    loadDemoData() {
-        try {
-            console.log('Loading demo data');
-            
-            // Create a demo account ID
-            const platform = 'Android';
-            const uid = '123456789';
-            const accountId = `${platform}=${uid}`;
-            
-            this.accountId = accountId;
-            this.isDemoMode = true;
-            
-            // Get demo data from MockDataProvider
-            if (typeof MockDataProvider !== 'undefined') {
-                const mockData = MockDataProvider.getMockData(platform, uid);
-                
-                if (mockData) {
-                    // Parse and display the data
-                    const decompressedData = DataCompressor.decompressFromUrl(mockData);
-                    
-                    if (decompressedData) {
-                        this.data = decompressedData;
-                        
-                        // Show content section
-                        const contentSection = document.getElementById('content');
-                        if (contentSection) {
-                            contentSection.classList.remove('d-none');
-                        }
-                        
-                        // Hide loader
-                        const loadingSection = document.getElementById('loading');
-                        if (loadingSection) {
-                            loadingSection.classList.add('d-none');
-                        }
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error loading account:', error);
-            // Show error message to user and reset UI
-            this.showError('Der opstod en fejl ved indlæsning af kontoen. Prøv igen senere.');
-            
-            // Hide loader
-            const loadingSection = document.getElementById('loading');
-            if (loadingSection) {
-                loadingSection.classList.add('d-none');
-            }
-            
-            // Show content
-            const contentSection = document.getElementById('content');
-            if (contentSection) {
-                contentSection.classList.remove('d-none');
-            }
-        }
 
-    
-    /**
-     * Shows demo mode banner in the UI
-     */
-    showDemoMode() {
-        // Create a demo mode banner
-        const demoBanner = document.createElement('div');
-        demoBanner.className = 'alert alert-warning mx-3 mt-3';
-        demoBanner.innerHTML = '<strong>Demo Mode</strong> - You are viewing sample data. Use a valid account URL or profile to see actual account data.';
-        
-        // Insert at the top of the content
-        const contentElement = document.getElementById('content');
-        if (contentElement && contentElement.firstChild) {
-            contentElement.insertBefore(demoBanner, contentElement.firstChild);
-        }
+    if (!searchInput || !sortSelect || !filterSelect) return;
+
+    const searchValue = searchInput.value.toLowerCase();
+    const sortValue = sortSelect.value;
+    const filterValue = filterSelect.value;
+
+    // Get all heroes
+    let heroes = this.data.heroes || this.data.h || [];
+
+    // Apply search filter
+    if (searchValue) {
+        heroes = heroes.filter(hero => {
+            const heroName = (hero.name || hero.n || '').toLowerCase();
+            return heroName.includes(searchValue);
+        });
     }
-    
-    /**
-     * Load account data by account identifier
-     * @param {string} accountId - The account identifier (Platform=UID)
-     */
-    loadAccount(accountId) {
-        if (!accountId) {
-            console.error('No account ID provided');
-            return;
-        }
-        
-        console.log(`Loading account data for: ${accountId}`);
-        
-        // Show loading
-        this.showLoading(true);
-        
-        // Hide any previous error
-        if (this.errorElement) {
-            this.errorElement.classList.add('d-none');
-        }
-        
-        // Hide content
-        if (this.contentElement) {
-            this.contentElement.classList.add('d-none');
-        }
-        
-        // Clear any previous demo banners
-        const prevDemoBanners = document.querySelectorAll('.alert-warning');
-        prevDemoBanners.forEach(banner => {
-            if (banner.parentNode) {
-                banner.parentNode.removeChild(banner);
+
+    // Apply star/enable filter
+    if (filterValue !== 'all') {
+        heroes = heroes.filter(hero => {
+            const stars = hero.stars || hero.s || 0;
+            const enabled = hero.enabled || hero.e || 0;
+
+            switch (filterValue) {
+                case '5+': return stars >= 5;
+                case '6+': return stars >= 6;
+                case '10': return stars >= 10;
+                case 'e1+': return enabled >= 1;
+                default: return true;
             }
         });
-        
-        // Set the account ID
-        this.accountId = accountId;
-        
-        // Check if we have cached data
-        this.checkLocalCache(accountId)
-            .then(cachedData => {
-                if (cachedData) {
-                    // Use cached data
-                    console.log('Using cached data for account');
-                    this.processAccountData(cachedData);
-                } else {
-                    // Try to fetch from server
-                    this.fetchAccountData(accountId)
-                        .then(data => {
-                            if (data) {
-                                this.processAccountData(data);
-                            } else {
-                                console.log('No data found for account, using mock data');
-                                // Use mock data as fallback
-                                this.fetchMockData(accountId)
-                                    .then(mockData => {
-                                        if (mockData) {
-                                            this.processAccountData(mockData, true);
-                                        } else {
-                                            this.showError(`No data found for account: ${accountId}`);
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error fetching mock data:', error);
-                                        this.showError(`Error loading account data: ${error.message}`);
-                                    });
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching account data:', error);
-                            this.showError(`Error loading account data: ${error.message}`);
-                        });
+    }
+
+    // Apply sorting
+    heroes = [...heroes].sort((a, b) => {
+        const aName = (a.name || a.n || '').toLowerCase();
+        const bName = (b.name || b.n || '').toLowerCase();
+        const aStars = a.stars || a.s || 0;
+        const bStars = b.stars || b.s || 0;
+        const aLevel = a.level || a.l || 0;
+        const bLevel = b.level || b.l || 0;
+        const aEnabled = a.enabled || a.e || 0;
+        const bEnabled = b.enabled || b.e || 0;
+
+        switch (sortValue) {
+            case 'stars':
+                // Sort by enabled first, then stars
+                if (aEnabled !== bEnabled) {
+                    return bEnabled - aEnabled;
                 }
-            })
-            .catch(error => {
-                console.error('Error checking cache:', error);
-                // Fallback to localStorage
-                this.checkLocalStorageCache(accountId);
-            });
-    }
+                return bStars - aStars;
+
+            case 'level':
+                return bLevel - aLevel;
+
+            case 'name':
+                return aName.localeCompare(bName);
+
+            default:
+                return 0;
+        }
+    });
+
+    // Render filtered heroes
+    this.renderHeroCards(heroes);
+}
 
 /**
- * Helper function to create a delay
- * @param {number} ms - Milliseconds to delay
- * @returns {Promise<void>}
+ * Filter items based on controls
  */
-delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-};
+filterItems() {
+    const searchInput = document.getElementById('item-search');
+    const sortSelect = document.getElementById('item-sort');
+    const filterSelect = document.getElementById('item-filter');
+
+    if (!searchInput || !sortSelect || !filterSelect) return;
+
+    const searchValue = searchInput.value.toLowerCase();
+    const sortValue = sortSelect.value;
+    const filterValue = filterSelect.value;
+
+    // Get all items
+    let items = this.data.inventory || this.data.i || [];
+
+    // Apply search filter
+    if (searchValue) {
+        items = items.filter(item => {
+            const itemName = (item.name || item.n || '').toLowerCase();
+            return itemName.includes(searchValue);
+        });
+    }
+
+    // Apply type filter
+    if (filterValue !== 'all') {
+        items = items.filter(item => {
+            const itemName = (item.name || item.n || '').toLowerCase();
+            const itemType = (item.type || item.t || '').toLowerCase();
+
+            switch (filterValue) {
+                case 'shards': return itemName.includes('shard');
+                case 'resources': return !itemName.includes('shard') && (
+                    itemType.includes('resource') || 
+                    itemName.includes('gold') || 
+                    itemName.includes('gem') ||
+                    itemName.includes('dust')
+                );
+                default: return true;
+            }
+        });
+    }
+
+    // Apply sorting
+    items = [...items].sort((a, b) => {
+        const aName = (a.name || a.n || '').toLowerCase();
+        const bName = (b.name || b.n || '').toLowerCase();
+        const aCount = a.count || a.c || 0;
+        const bCount = b.count || b.c || 0;
+
+        switch (sortValue) {
+            case 'count':
+                return bCount - aCount;
+
+            case 'name':
+                return aName.localeCompare(bName);
+
+            default:
+                return 0;
+        }
+    });
+
+    // Render filtered items
+    this.renderItemCards(items);
+}
 
 /**
- * Update the loading message to show download progress
- * @param {string} message - Message to display
+ * Load demo data for testing
  */
-updateLoadingMessage(message) {
-    const loadingTextElement = document.querySelector('.loading-text');
-    if (loadingTextElement) {
-        loadingTextElement.textContent = message;
+loadDemoData() {
+    try {
+        console.log('Loading demo data');
+
+        // Create a demo account ID
+        const platform = 'Android';
+        const uid = '123456789';
+        const accountId = `${platform}=${uid}`;
+
+        this.accountId = accountId;
+        this.isDemoMode = true;
+
+        // Get demo data from MockDataProvider
+        if (typeof MockDataProvider !== 'undefined') {
+            const mockData = MockDataProvider.getMockData(platform, uid);
+
+            if (mockData) {
+                // Parse and display the data
+                const decompressedData = DataCompressor.decompressFromUrl(mockData);
+
+                if (decompressedData) {
+                    this.data = decompressedData;
+
+                    // Show content section
+                    const contentSection = document.getElementById('content');
+                    if (contentSection) {
+                        contentSection.classList.remove('d-none');
+                    }
+
+                    // Hide loader
+                    const loadingSection = document.getElementById('loading');
+                    if (loadingSection) {
+                        loadingSection.classList.add('d-none');
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading account:', error);
+        // Show error message to user and reset UI
+        this.showError('Der opstod en fejl ved indlæsning af kontoen. Prøv igen senere.');
+
+        // Hide loader
+        const loadingSection = document.getElementById('loading');
+        if (loadingSection) {
+            loadingSection.classList.add('d-none');
+        }
+
+        // Show content
+        const contentSection = document.getElementById('content');
+        if (contentSection) {
+            contentSection.classList.remove('d-none');
+        }
     }
-};
+}
+
+/**
+ * Shows demo mode banner in the UI
+ */
+showDemoMode() {
+    // Create a demo mode banner
+    const demoBanner = document.createElement('div');
+    demoBanner.className = 'alert alert-warning mx-3 mt-3';
+    demoBanner.innerHTML = '<strong>Demo Mode</strong> - You are viewing sample data. Use a valid account URL or profile to see actual account data.';
+
+    // Insert at the top of the content
+    const contentElement = document.getElementById('content');
+    if (contentElement && contentElement.firstChild) {
+        contentElement.insertBefore(demoBanner, contentElement.firstChild);
+    }
+}
 
 /**
  * Load account data by account identifier
  * @param {string} accountId - The account identifier (Platform=UID)
  */
 loadAccount(accountId) {
-    if (!accountId) {
-        console.error('No account ID provided');
+    if (!accountId || typeof accountId !== 'string') {
+        console.error('Invalid account ID');
         return;
     }
-    
-    console.log(`Loading account data for: ${accountId}`);
-    
+
+    console.log('Loading account with ID:', accountId);
+
+    // Set account ID property
+    this.accountId = accountId;
+
     // Show loading
-    this.showLoading(true);
-    
+    this.showLoading(true, 'Loading account data...');
+
     // Hide any previous error
     if (this.errorElement) {
         this.errorElement.classList.add('d-none');
     }
-    
-    // Hide content
-    if (this.contentElement) {
-        this.contentElement.classList.add('d-none');
-    }
-    
-    // Clear any previous demo banners
-    const prevDemoBanners = document.querySelectorAll('.alert-warning');
-    prevDemoBanners.forEach(banner => {
-        if (banner.parentNode) {
-            banner.parentNode.removeChild(banner);
-        }
-    });
-    
-    // Set the account ID
-    this.accountId = accountId;
-    
+
     // Check if we have cached data
-    this.getCachedAccountData(accountId)
+    this.checkLocalCache(accountId)
         .then(cachedData => {
             if (cachedData) {
                 // Use cached data
@@ -1222,7 +1243,8 @@ loadAccount(accountId) {
         })
         .catch(error => {
             console.error('Error checking cache:', error);
-            this.showError(`Error checking cache: ${error.message}`);
+            // Fallback to localStorage
+            this.checkLocalStorageCache(accountId);
         });
 }
 
@@ -1233,78 +1255,32 @@ loadAccount(accountId) {
  */
 async fetchAccountData(accountId) {
     try {
-        const [platform, uid] = accountId.split('=')
-            
+        const [platform, uid] = accountId.split('=');
+
         if (!platform || !uid) {
             console.error('Invalid account identifier format');
             return null;
         }
-        
-        // Form URL to the data file in the repository
-        const baseUrl = window.location.origin;
-        const dataPath = '/data/accounts/';
-        const dataUrl = `${baseUrl}${dataPath}${platform.toLowerCase()}/${uid}.json`;
-        
-        console.log(`Fetching account data from: ${dataUrl}`);
-        
-        // Simulate connection and download process with visual feedback
-        this.updateDownloadProgress(10, `Connecting to ${platform} servers...`);
-        await this.delay(1200);
-        
-        this.updateDownloadProgress(25, `Requesting account #${uid} data...`);
-        await this.delay(1800);
-        
-        this.updateDownloadProgress(40, 'Establishing secure connection...');
-        await this.delay(900);
-        
-        this.updateDownloadProgress(60, 'Downloading profile data...');
-        await this.delay(1500);
-        
-        this.updateDownloadProgress(75, 'Downloading hero collection...');
-        await this.delay(1200);
-        
-        this.updateDownloadProgress(90, 'Downloading inventory data...');
-        await this.delay(1000);
-        
-        // Now actually try to fetch with a timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-        
-        try {
-            // Final progress update
-            this.updateDownloadProgress(95, 'Processing account data...');
-            
-            const response = await fetch(dataUrl, { signal: controller.signal });
-            clearTimeout(timeoutId);
-            
-            this.updateDownloadProgress(100, 'Download complete!');
-            await this.delay(500);
-            
-            if (!response.ok) {
-                console.warn(`Failed to fetch data: ${response.status}`);
-                return null;
-            }
-            
-            const data = await response.json();
-            if (!data || !data.compressed) {
-                console.warn('Invalid data format');
-                return null;
-            }
-            
-            // Cache the data locally
-            this.cacheDataLocally(accountId, data.compressed);
-            
-            return data.compressed;
-        } catch (fetchError) {
-            clearTimeout(timeoutId);
-            console.warn('Fetch timeout or error:', fetchError);
-            
-            // Still show progress to 100% for better UX, even for demo data
-            this.updateDownloadProgress(100, 'Preparing demo data...');
-            await this.delay(800);
-            
-            return null;
+
+        console.log(`Fetching account data for ${platform}=${uid}`);
+
+        // Check if we have data from a mobile app upload first
+        const mobileData = this.checkMobileUpload(platform, uid);
+        if (mobileData) {
+            console.log('Found data from mobile upload');
+            return mobileData;
         }
+
+        // Then check localStorage/IndexedDB
+        const cachedData = await this.checkLocalStorageCache(accountId);
+        if (cachedData) {
+            console.log('Found cached data');
+            return cachedData;
+        }
+
+        // If no cached data, use mock data
+        console.log('No cached data found, using mock data');
+        return this.fetchMockData(accountId);
     } catch (error) {
         console.error('Error in fetchAccountData:', error);
         return null;
@@ -1318,18 +1294,18 @@ async fetchAccountData(accountId) {
  */
 async fetchMockData(accountId) {
     try {
-        const [platform, uid] = accountId.split('=')
-            
+        const [platform, uid] = accountId.split('=');
+
         if (!platform || !uid) {
             console.error('Invalid account identifier format');
             return null;
         }
-        
+
         // Check if we have the MockDataProvider
         if (window.MockDataProvider) {
             return window.MockDataProvider.getMockData(platform, uid);
         }
-        
+
         return null;
     } catch (error) {
         console.error('Error fetching mock data:', error);
@@ -1346,36 +1322,36 @@ processAccountData(data, isMock = false) {
     try {
         // Decompress data
         const decompressedData = DataCompressor.decompressFromUrl(data);
-        
+
         if (!decompressedData) {
             throw new Error('Failed to decompress data');
         }
-        
+
         // Set data and render
         this.data = decompressedData;
         this.renderData();
-        
+
         // Setup sharing
         const shareUrl = window.location.origin + window.location.pathname + '#' + this.accountId;
         this.setupSharing(shareUrl);
-        
+
         // Show demo banner if mock data
         if (isMock) {
             this.showDemoMode();
         }
-        
+
         // Cache data locally if not mock
         if (!isMock) {
             this.cacheDataLocally(this.accountId, data);
         }
-        
+
         // Hide loading
         this.showLoading(false);
     } catch (error) {
         console.error('Error processing account data:', error);
         this.showError(`Error processing account data: ${error.message}`);
     }
-};
+}
 
 /**
  * Cache data locally
@@ -1390,7 +1366,7 @@ cacheDataLocally(accountId, data) {
                 .then(() => console.log('Account data saved to IndexedDB'))
                 .catch(error => console.warn('Failed to save to IndexedDB:', error));
         }
-        
+
         // Also save to localStorage as backup
         const storage = window.localStorage;
         if (storage) {
@@ -1405,21 +1381,35 @@ cacheDataLocally(accountId, data) {
     } catch (error) {
         console.warn('Error caching data locally:', error);
     }
-};
+}
 
 /**
  * Helper method to check localStorage cache
  * @param {string} accountId - The account ID to check
- * @returns {string|null} - Cached data if found, null otherwise
+ * @returns {Promise<string|null>} - Cached data if found, null otherwise
  */
-checkLocalStorageCache(accountId) {
+async checkLocalStorageCache(accountId) {
     try {
+        // First try with IndexedDB if available
+        if (window.DBManager) {
+            try {
+                const dbData = await DBManager.loadAccountData(accountId);
+                if (dbData) {
+                    console.log('Found account data in IndexedDB');
+                    return dbData;
+                }
+            } catch (dbError) {
+                console.warn('Error accessing IndexedDB:', dbError);
+            }
+        }
+
+        // Fallback to localStorage
         const storage = window.localStorage;
         if (!storage) return null;
-        
+
         const cacheKey = `account_${accountId}`;
         const cacheData = storage.getItem(cacheKey);
-        
+
         if (cacheData) {
             try {
                 const parsedData = JSON.parse(cacheData);
@@ -1431,14 +1421,100 @@ checkLocalStorageCache(accountId) {
                 console.warn('Failed to parse cached data from localStorage');
             }
         }
-        
+
         // No cached data found
         return null;
     } catch (error) {
         console.warn('Error getting cached account data:', error);
         return null;
     }
-};
-
-// Afslut IdleHeroesViewer klassen
 }
+
+/**
+ * Check for data uploaded from mobile app
+ * @param {string} platform - The platform (iOS/Android)
+ * @param {string} uid - The user ID
+ * @returns {string|null} - Mobile data if found, null otherwise
+ */
+checkMobileUpload(platform, uid) {
+    try {
+        console.log(`Checking for mobile upload data: ${platform}=${uid}`);
+        
+        // First check if we have the mobile data handler available
+        if (window.mobileDataHandler && typeof window.mobileDataHandler.getData === 'function') {
+            const mobileData = window.mobileDataHandler.getData(platform, uid);
+            if (mobileData) {
+                console.log(`Found mobile upload data via handler for ${platform} user ${uid}`);
+                return mobileData;
+            }
+        }
+        
+        // Fallback to direct storage access
+        const storage = window.localStorage;
+        if (!storage) return null;
+
+        // Check for mobile uploads with this format: mobile_upload_{platform}_{uid}
+        const mobileKey = `mobile_upload_${platform}_${uid}`;
+        const mobileData = storage.getItem(mobileKey);
+        
+        if (mobileData) {
+            console.log(`Found mobile upload data for ${platform} user ${uid}`);
+            // Once we've used it, remove it to avoid duplicate data
+            // storage.removeItem(mobileKey);
+            return mobileData;
+        }
+        
+        // Also check sessionStorage as fallback
+        if (window.sessionStorage) {
+            const sessionData = window.sessionStorage.getItem(mobileKey);
+            if (sessionData) {
+                console.log(`Found mobile upload data in session storage for ${platform} user ${uid}`);
+                return sessionData;
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        console.warn('Error checking for mobile upload data:', error);
+        return null;
+    }
+}
+
+    /**
+     * Initialize mobile data integration
+     */
+    initializeMobileIntegration() {
+        try {
+            // Listen for mobile data events
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'idleHeroesData') {
+                    console.log('Received mobile data via postMessage');
+                    
+                    if (event.data.platform && event.data.uid && event.data.data) {
+                        // Save to localStorage
+                        const mobileKey = `mobile_upload_${event.data.platform}_${event.data.uid}`;
+                        localStorage.setItem(mobileKey, event.data.data);
+                        
+                        // Redirect to load this account
+                        this.loadAccount(`${event.data.platform}=${event.data.uid}`);
+                    }
+                }
+            });
+            
+            console.log('Mobile data integration initialized');
+        } catch (error) {
+            console.error('Error initializing mobile integration:', error);
+        }
+    }
+}
+
+// Initialize viewer when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Create global instance
+    window.viewer = new IdleHeroesViewer();
+    
+    // Initialize mobile integration
+    if (window.viewer && typeof window.viewer.initializeMobileIntegration === 'function') {
+        window.viewer.initializeMobileIntegration();
+    }
+});

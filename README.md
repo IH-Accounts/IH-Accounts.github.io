@@ -2,7 +2,19 @@
 
 A fully secure, privacy-focused recreation of the Idle Heroes game interface that allows you to view, track, and share your complete account data directly in your browser. This visual system operates with **zero central storage** and no unnecessary uploads - your data stays with you.
 
-[Visit the live site](https://ih-accounts.github.io/)
+<div align="center">
+<a href="https://ih-accounts.github.io/" target="_blank">
+  <div>
+    <img src="IdleHeroesicon.png" alt="Idle Heroes" width="150" height="150">
+  </div>
+  <div>
+    <img src="idleheroestitle-removebg.png" alt="Idle Heroes Title" width="300">
+  </div>
+  <div>
+    <img src="https://img.shields.io/badge/LAUNCH%20LIVE%20SITE-%E2%86%92-e1c06f?style=for-the-badge&labelColor=873ec7&color=060a1a&logoWidth=50&logoColor=e1c06f" alt="LAUNCH LIVE SITE" width="280">
+  </div>
+</a>
+</div>
 
 ## Key Features
 

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Search for Idle Heroes accounts to view detailed information">
+    <title>Search Idle Heroes Accounts</title>
+    <link rel="icon" type="image/png" href="IdleHeroesicon.png">
+    <link rel="apple-touch-icon" href="IdleHeroesicon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --idle-primary: #e1c06f;
+            --idle-secondary: #873ec7;
+            --idle-dark: #060a1a;
+            --idle-light: #f7f2e7;
+            --idle-accent: #ff5722;
+        }
+        
+        /* Global styles */
+        body { 
+            margin: 0;
+            padding: 0;
+            background-color: var(--idle-dark);
+            background-image: url('https://ih.dhgames.com/upload/202107/77_1625563776_gJlqjn.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: var(--idle-light);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .overlay {
+            background: linear-gradient(to bottom, rgba(6, 10, 26, 0.8) 0%, rgba(6, 10, 26, 0.9) 100%);
+            min-height: 100vh;
+            width: 100%;
+        }
+        
+        .navbar {
+            background-color: rgba(6, 10, 26, 0.9);
+            border-bottom: 1px solid var(--idle-primary);
+        }
+        
+        .navbar-brand {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--idle-primary);
+            text-shadow: 0 0 10px rgba(225, 192, 111, 0.5);
+        }
+        
+        .nav-link {
+            color: var(--idle-light);
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--idle-primary);
+        }
+        
+        /* Main content styles */
+        .content-wrapper {
+            padding: 2rem 0 4rem;
+        }
+        
+        .page-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            color: var(--idle-primary);
+            margin-bottom: 2rem;
+            text-align: center;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(225, 192, 111, 0.5);
+        }
+        
+        /* Search form styles */
+        .search-container {
+            background: rgba(6, 10, 26, 0.8);
+            border: 1px solid var(--idle-secondary);
+            border-radius: 8px;
+            padding: 2.5rem;
+            margin: 2rem auto;
+            max-width: 600px;
+        }
+        
+        .search-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            color: var(--idle-primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .form-label {
+            color: var(--idle-primary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-select {
+            background-color: rgba(6, 10, 26, 0.9) !important;
+            border: 1px solid var(--idle-secondary);
+            color: var(--idle-light) !important;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background-color: rgba(6, 10, 26, 0.95) !important;
+            border-color: var(--idle-primary);
+            box-shadow: 0 0 0 0.25rem rgba(225, 192, 111, 0.25);
+            color: var(--idle-light) !important;
+        }
+        
+        /* Force dark background on select items */
+        .form-select option {
+            background-color: rgba(6, 10, 26, 0.95) !important;
+            color: var(--idle-light) !important;
+        }
+        
+        .btn-idle {
+            background: linear-gradient(135deg, var(--idle-secondary) 0%, #5c2a8c 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            border-radius: 4px;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        
+        .btn-idle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(135, 62, 199, 0.5);
+            color: white;
+        }
+        
+        .recent-searches {
+            margin-top: 2.5rem;
+        }
+        
+        .recent-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            color: var(--idle-primary);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .recent-account {
+            background: rgba(6, 10, 26, 0.6);
+            border: 1px solid var(--idle-secondary);
+            border-radius: 4px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .recent-account:hover {
+            background: rgba(6, 10, 26, 0.8);
+            border-color: var(--idle-primary);
+            transform: translateY(-2px);
+        }
+        
+        .recent-account-info {
+            font-weight: 500;
+        }
+        
+        .recent-account-platform {
+            color: var(--idle-primary);
+            margin-right: 0.5rem;
+        }
+        
+        /* Error message */
+        .error-message {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid #dc3545;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .search-container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="landing.html">Idle Heroes Account Viewer</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="landing.html">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">Search</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <div class="container content-wrapper">
+            <h1 class="page-title">Search Accounts</h1>
+            
+            <div class="search-container">
+                <h2 class="search-title">Enter Account Details</h2>
+                
+                <form id="account-search-form">
+                    <div class="mb-3">
+                        <label for="account-platform" class="form-label">Platform</label>
+                        
+                        <select id="account-platform" class="form-select" required>
+                            <option value="iOS">iOS</option>
+                            <option value="Android">Android</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="account-uid" class="form-label">Player UID</label>
+                        <input type="text" id="account-uid" class="form-control" placeholder="Enter Player UID..." required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-idle">View Account</button>
+                </form>
+                
+                <div id="error-message" class="error-message">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span id="error-text">Please enter a valid UID</span>
+                </div>
+                
+                <div class="recent-searches" id="recent-searches">
+                    <h3 class="recent-title">Recent Searches</h3>
+                    <div id="recent-accounts-list">
+                        <!-- Recent accounts will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="text-center mt-5 pb-4">
+            <div class="container">
+                <p>Idle Heroes Account Viewer is not affiliated with Idle Heroes or DHGames. All game content is property of the respective owners.</p>
+                <p>© 2025 ih-accounts.github.io</p>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fix form stylings to ensure dark theme on all browsers
+            const fixStyles = function() {
+                const selects = document.querySelectorAll('.form-select');
+                const inputs = document.querySelectorAll('.form-control');
+                
+                selects.forEach(select => {
+                    select.style.backgroundColor = 'rgba(6, 10, 26, 0.9)';
+                    select.style.color = '#f7f2e7';
+                });
+                
+                inputs.forEach(input => {
+                    input.style.backgroundColor = 'rgba(6, 10, 26, 0.9)';
+                    input.style.color = '#f7f2e7';
+                });
+            };
+            
+            // Apply styles initially and after a delay
+            fixStyles();
+            setTimeout(fixStyles, 100);
+            setTimeout(fixStyles, 500);
+            
+            // Handle form submission
+            const searchForm = document.getElementById('account-search-form');
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const platform = document.getElementById('account-platform').value;
+                const uid = document.getElementById('account-uid').value.trim();
+                
+                // Basic validation
+                if (!uid || uid.length < 4) {
+                    const errorMessage = document.getElementById('error-message');
+                    document.getElementById('error-text').textContent = 'Please enter a valid UID (at least 4 characters)';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Store in recent searches
+                saveRecentSearch(platform, uid);
+                
+                // Redirect to viewer with parameters
+            // Get base URL to handle both local and GitHub Pages deployment
+            const baseUrl = window.location.pathname.includes('github.io') ? 
+                window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') + '/' :
+                window.location.origin + '/';
+            
+            console.log('Redirecting to viewer with base URL:', baseUrl);
+            window.location.href = `${baseUrl}viewer.html#${platform}=${uid}`;
+            });
+            
+            // Function to save recent searches to localStorage
+            function saveRecentSearch(platform, uid) {
+                let recentSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+                
+                // Add new search to beginning of array
+                recentSearches.unshift({
+                    platform: platform,
+                    uid: uid,
+                    timestamp: Date.now()
+                });
+                
+                // Keep only the most recent 5 searches
+                recentSearches = recentSearches.slice(0, 5);
+                
+                // Save back to localStorage
+                localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+                
+                // Update displayed list
+                displayRecentSearches();
+            }
+            
+            // Function to display recent searches
+            function displayRecentSearches() {
+                const recentSearchesList = document.getElementById('recent-accounts-list');
+                const recentSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+                
+                // Clear current list
+                recentSearchesList.innerHTML = '';
+                
+                if (recentSearches.length === 0) {
+                    recentSearchesList.innerHTML = '<p class="text-center text-muted">No recent searches</p>';
+                    return;
+                }
+                
+                // Add each recent search to the list
+                recentSearches.forEach(search => {
+                    const recentAccount = document.createElement('div');
+                    recentAccount.className = 'recent-account';
+                    recentAccount.innerHTML = `
+                        <div class="recent-account-info">
+                            <span class="recent-account-platform">${search.platform}</span>
+                            <span class="recent-account-uid">${search.uid}</span>
+                        </div>
+                        <i class="bi bi-arrow-right"></i>
+                    `;
+                    
+                    // Add click handler
+                    recentAccount.addEventListener('click', function() {
+                        // Get base URL to handle both local and GitHub Pages deployment
+                        const baseUrl = window.location.pathname.includes('github.io') ? 
+                            window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') + '/' :
+                            window.location.origin + '/';
+                        
+                        window.location.href = `${baseUrl}viewer.html#${search.platform}=${search.uid}`;
+                    });
+                    
+                    recentSearchesList.appendChild(recentAccount);
+                });
+            }
+            
+            // Display recent searches on page load
+            displayRecentSearches();
+        });
+    </script>
+</body>
+</html>
