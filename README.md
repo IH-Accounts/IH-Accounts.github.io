@@ -88,6 +88,9 @@ No installation needed! Just visit [https://ih-accounts.github.io/](https://ih-a
 
 To capture your own game data, download the appropriate profile from the [releases page](https://github.com/IH-Accounts/IH-Accounts.github.io/releases/latest).
 
+# Stats
+Total tracked accounts: [![](https://img.shields.io/badge/Accounts-0-blue)](https://github.com/IH-Accounts/IH-Accounts.github.io/blob/main/stats/account-stats.json).
+
 ## Security Architecture
 
 The Idle Heroes Account Viewer implements a comprehensive security architecture designed to protect your privacy while providing a seamless experience:

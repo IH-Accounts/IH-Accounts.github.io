@@ -12,6 +12,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="js/mock-data.js"></script>
+    <script src="js/idle-heroes-viewer.js"></script>
+    <script src="js/demo-account.js"></script>
+    <script src="js/account-download-simulator.js"></script>
+    <script src="js/mobile-data-handler.js"></script>
+    <script src="js/account-stats.js"></script>
     <style>
         :root {
             --idle-primary: #e1c06f;
@@ -742,8 +748,9 @@
     <script src="js/account-download-simulator.js"></script>
     <script src="js/mobile-data-handler.js"></script>
     <script>
-    // Prevent redirects
-    window.preventRedirects = true;
+    // Prevent any redirects and keep page visible
+    window.KEEP_PAGE_VISIBLE = true;
+    
     // Ensure search form is always visible immediately
     window.addEventListener('load', function() {
         // Always show search form
@@ -803,6 +810,9 @@
             }
         });
     });
+    // STOP REDIRECT - IMPORTANT FIX
+    window.FORCE_STAY_ON_PAGE = true;
+    sessionStorage.setItem('disableRedirects', 'true');
     </script>
     <script src="js/app.js"></script>
     
@@ -859,6 +869,9 @@
                         // If viewer object is ready, load this account
                         if (window.viewer && typeof window.viewer.loadAccount === 'function') {
                             window.viewer.loadAccount(hash);
+                            // Update statistics
+                            AccountStats.updateCount(platform, uid)
+                                .catch(err => console.error('Error updating stats:', err));
                         } else {
                             // If viewer not ready, set a flag to load when it's ready
                             window.accountToLoad = hash;
@@ -876,16 +889,18 @@
         
         // Debug output for URL hash
         console.log('Current URL hash:', window.location.hash);
-
-        // Try to load account from URL first
+        // MODIFIED - No redirect
+        console.log("Checking for account in URL");
         const accountInUrl = checkUrlForAccount();
-        console.log('Account found in URL:', accountInUrl);
+        console.log("Account found:", accountInUrl);
 
-        // If no account in URL, load demo data after a delay
-        if (!accountInUrl) {
-            // Show the content div by default so users can see the platform/UID form
-            document.getElementById('loading').classList.add('d-none');
-            document.getElementById('content').classList.remove('d-none');
+        // Always show content, regardless of whether account is found or not
+        document.getElementById('loading').classList.add('d-none');
+        document.getElementById('content').classList.remove('d-none');
+
+        // Only load demo data if there is no account in URL AND we are not in "FORCE_STAY" mode
+        if (!accountInUrl && !window.FORCE_STAY_ON_PAGE) {
+            console.log("Loading demo data");
             
             setTimeout(function() {
                 if (window.viewer && typeof window.viewer.loadDemoData === 'function') {

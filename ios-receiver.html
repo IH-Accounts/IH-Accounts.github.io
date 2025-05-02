@@ -98,6 +98,14 @@
                     <div id="success-message" class="alert alert-success d-none">
                         Data received successfully! Redirecting to viewer...
                     </div>
+
+                    async function updateStatsAfterSave() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const uid = urlParams.get('uid');
+                    if (uid) {
+                        await AccountStats.updateCount('iOS', uid);
+                    }
+                }
                 </div>
             </div>
         </div>
