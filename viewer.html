@@ -742,6 +742,8 @@
     <script src="js/account-download-simulator.js"></script>
     <script src="js/mobile-data-handler.js"></script>
     <script>
+    // Prevent redirects
+    window.preventRedirects = true;
     // Ensure search form is always visible immediately
     window.addEventListener('load', function() {
         // Always show search form
